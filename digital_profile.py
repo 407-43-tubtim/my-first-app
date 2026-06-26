@@ -1,7 +1,7 @@
 import streamlit as st
 
 # 1. หัวข้อใหญ่: แนะนำตัวหลักและชื่อเจ้าของเว็บ
- st.title("My Digital Profile")
+st.title("My Digital Profile")
 
 # 2. หัวข้อย่อยที่ 1: แนะนำตัว
 st.header("แนะนำตัว")
