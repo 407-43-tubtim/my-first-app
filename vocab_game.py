@@ -10,7 +10,6 @@ if "ans1_val" not in st.session_state:
 if "ans2_val" not in st.session_state:
     st.session_state.ans2_val = ""
 
-# เพิ่มข้อ 3 และข้อ 4
 if "ans3_val" not in st.session_state:
     st.session_state.ans3_val = ""
 
@@ -66,7 +65,7 @@ def show_result_dialog(ans1, ans2, ans3, ans4):
         st.error(f"❌ ข้อ 3: ยังไม่ถูกต้อง (คุณตอบ '{u_ans3}')")
 
     # ตรวจข้อ 4
-    if u_ans4 == "school":
+    if u_ans4 == "balloon":
         st.success("✅ ข้อ 4: ถูกต้อง")
         score += 1
     else:
@@ -75,7 +74,6 @@ def show_result_dialog(ans1, ans2, ans3, ans4):
     # แสดงคะแนน
     st.info(f"🏆 ได้คะแนนรวม: {score} / 4 คะแนน")
 
-    # ตรวจว่าตอบถูกทั้งหมดหรือไม่
     if score == 4:
         st.success("🎉 You win!")
     else:
@@ -119,15 +117,13 @@ ans2 = st.text_input(
     value=st.session_state.ans2_val,
 )
 
-# เพิ่มข้อ 3
 ans3 = st.text_input(
     "ข้อ 3: I read a `b _ _ k` every day. 📖",
     value=st.session_state.ans3_val,
 )
 
-# เพิ่มข้อ 4
 ans4 = st.text_input(
-    "ข้อ 4: Students go to `s _ h _ _ l` every day. 🏫",
+    "ข้อ 4: The child has a `b _ l l _ _ n`. 🎈",
     value=st.session_state.ans4_val,
 )
 
@@ -149,11 +145,9 @@ st.session_state.ans4_val = ans4
 if "start" in st.session_state and not st.session_state.get("is_ended", False):
 
     if st.button("📥 ส่งคำตอบ"):
-
         st.session_state.is_ended = True
         st.rerun()
 
-    # อัปเดตเวลา
     time.sleep(1)
     st.rerun()
 
@@ -174,4 +168,4 @@ if st.session_state.get("is_ended", False):
 
 st.divider()
 
-st.write("นางสาว  ทับทิม คำป้อ เลขที่ 43 ม.4/7")
+st.write("นางสาว ทับทิม คำป้อ เลขที่ 43 ม.4/7")
