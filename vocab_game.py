@@ -1,455 +1,177 @@
 import time
-import random
 import streamlit as st
 
-
-# =========================================================
-# ⚙️ ตั้งค่าหน้าเว็บ
-# =========================================================
-
-st.set_page_config(
-    page_title="เกมเติมศัพท์จับเวลา",
-    page_icon="⏱️",
-    layout="centered"
-)
-
 st.title("⏱️ เกมเติมศัพท์จับเวลา")
-st.write("เติมคำศัพท์ภาษาอังกฤษให้ถูกต้องภายใน 30 วินาที 🎯")
+
+# 1. กำหนดค่าเริ่มต้นใน session_state
+if "ans1_val" not in st.session_state:
+    st.session_state.ans1_val = ""
+
+if "ans2_val" not in st.session_state:
+    st.session_state.ans2_val = ""
+
+# เพิ่มข้อ 3 และข้อ 4
+if "ans3_val" not in st.session_state:
+    st.session_state.ans3_val = ""
+
+if "ans4_val" not in st.session_state:
+    st.session_state.ans4_val = ""
 
 
-# =========================================================
-# 📚 คลังคำศัพท์
-# =========================================================
-
-VOCABULARY = {
-    "Fruits": [
-        ("🍎", "Apple"),
-        ("🍏", "Green Apple"),
-        ("🍌", "Banana"),
-        ("🍊", "Orange"),
-        ("🍋", "Lemon"),
-        ("🍇", "Grapes"),
-        ("🍓", "Strawberry"),
-        ("🫐", "Blueberry"),
-        ("🍉", "Watermelon"),
-        ("🍍", "Pineapple"),
-        ("🥭", "Mango"),
-        ("🍑", "Peach"),
-        ("🍒", "Cherry"),
-        ("🥥", "Coconut"),
-        ("🥑", "Avocado"),
-    ],
-
-    "Objects & Supplies": [
-        ("✏️", "Pencil"),
-        ("🖊️", "Pen"),
-        ("📏", "Ruler"),
-        ("📚", "Books"),
-        ("✂️", "Scissors"),
-        ("🎒", "Backpack"),
-        ("👓", "Glasses"),
-        ("🔑", "Key"),
-        ("⏰", "Alarm Clock"),
-        ("🚗", "Car"),
-        ("🎈", "Balloon"),
-        ("🎁", "Gift"),
-        ("📱", "Phone"),
-        ("💻", "Laptop"),
-        ("💡", "Light Bulb"),
-    ]
-}
-
-
-# =========================================================
-# 🔤 รวมคำศัพท์ทั้งหมด
-# =========================================================
-
-ALL_WORDS = []
-
-for category, words in VOCABULARY.items():
-
-    for emoji, word in words:
-
-        ALL_WORDS.append({
-            "category": category,
-            "emoji": emoji,
-            "word": word
-        })
-
-
-# =========================================================
-# 🧠 ฟังก์ชันสร้างคำที่มีช่องว่าง
-# =========================================================
-
-def create_question(word):
-
-    letters = list(word)
-
-    # ตำแหน่งที่เป็นตัวอักษร
-    positions = [
-        i for i, char in enumerate(letters)
-        if char.isalpha()
-    ]
-
-    # ถ้าคำสั้นมาก
-    if len(positions) <= 2:
-        missing_count = 1
-
-    else:
-        missing_count = min(
-            2,
-            max(1, len(positions) // 3)
-        )
-
-    # สุ่มตำแหน่งที่จะหาย
-    missing_positions = random.sample(
-        positions,
-        missing_count
-    )
-
-    for position in missing_positions:
-        letters[position] = "_"
-
-    # ใส่ช่องว่างระหว่างตัวอักษร
-    return " ".join(letters)
-
-
-# =========================================================
-# 🔄 สร้าง Session State
-# =========================================================
-
-if "game_started" not in st.session_state:
-    st.session_state.game_started = False
-
-if "game_ended" not in st.session_state:
-    st.session_state.game_ended = False
-
-if "start_time" not in st.session_state:
-    st.session_state.start_time = None
-
-if "questions" not in st.session_state:
-    st.session_state.questions = []
-
-if "answers" not in st.session_state:
-    st.session_state.answers = []
-
-if "masked_questions" not in st.session_state:
-    st.session_state.masked_questions = []
-
-
-# =========================================================
-# 🎮 ฟังก์ชันเริ่มเกม
-# =========================================================
-
-def start_game():
-
-    # สุ่มคำศัพท์ 4 ข้อ
-    selected_words = random.sample(
-        ALL_WORDS,
-        4
-    )
-
-    # บันทึกโจทย์ไว้ใน session_state
-    st.session_state.questions = selected_words
-
-    # สร้างโจทย์แบบเติมคำ
-    st.session_state.masked_questions = [
-        create_question(item["word"])
-        for item in selected_words
-    ]
-
-    # เตรียมคำตอบ
-    st.session_state.answers = [
-        ""
-        for _ in selected_words
-    ]
-
-    # เริ่มจับเวลา
-    st.session_state.start_time = time.time()
-
-    # สถานะเกม
-    st.session_state.game_started = True
-    st.session_state.game_ended = False
-
-
-# =========================================================
-# 🔄 ฟังก์ชันเริ่มเกมใหม่
-# =========================================================
-
+# ฟังก์ชันเคลียร์ค่าเมื่อกดปุ่มเริ่มใหม่
 def reset_game():
+    st.session_state.ans1_val = ""
+    st.session_state.ans2_val = ""
+    st.session_state.ans3_val = ""
+    st.session_state.ans4_val = ""
 
-    start_game()
-
-
-# =========================================================
-# 📊 ฟังก์ชันตรวจคำตอบ
-# =========================================================
-
-def calculate_score():
-
-    score = 0
-
-    for index, question in enumerate(
-        st.session_state.questions
-    ):
-
-        correct_answer = (
-            question["word"]
-            .strip()
-            .lower()
-        )
-
-        user_answer = (
-            st.session_state.answers[index]
-            .strip()
-            .lower()
-        )
-
-        if user_answer == correct_answer:
-            score += 1
-
-    return score
+    st.session_state.start = time.time()
+    st.session_state.is_ended = False
 
 
-# =========================================================
-# 📊 Dialog แสดงผลคะแนน
-# =========================================================
-
+# ----------------------------------------------------
+# ฟังก์ชัน MessageBox (Dialog)
+# ----------------------------------------------------
 @st.dialog("📊 สรุปผลการเล่นเกม")
-def show_result_dialog():
-
-    score = calculate_score()
-
-    total = len(
-        st.session_state.questions
-    )
+def show_result_dialog(ans1, ans2, ans3, ans4):
 
     st.balloons()
 
-    st.subheader(
-        f"🏆 คะแนน {score} / {total}"
-    )
+    score = 0
 
-    st.divider()
+    u_ans1 = ans1.strip().lower()
+    u_ans2 = ans2.strip().lower()
+    u_ans3 = ans3.strip().lower()
+    u_ans4 = ans4.strip().lower()
 
-    # แสดงผลแต่ละข้อ
-    for index, question in enumerate(
-        st.session_state.questions
-    ):
-
-        user_answer = (
-            st.session_state.answers[index]
-            .strip()
-        )
-
-        correct_answer = question["word"]
-
-        if user_answer.lower() == correct_answer.lower():
-
-            st.success(
-                f"ข้อ {index + 1} ✅ ถูกต้อง — {correct_answer}"
-            )
-
-        else:
-
-            if user_answer == "":
-                display_answer = "ไม่ได้ตอบ"
-            else:
-                display_answer = user_answer
-
-            st.error(
-                f"ข้อ {index + 1} ❌ "
-                f"คุณตอบ: {display_answer} "
-                f"| คำตอบที่ถูก: {correct_answer}"
-            )
-
-    st.divider()
-
-    # สรุปผล
-    if score == total:
-
-        st.success(
-            "🎉 You Win! เก่งมาก ถูกทุกข้อเลย!"
-        )
-
-    elif score >= 2:
-
-        st.warning(
-            "👏 Almost there! ลองอีกครั้งเพื่อทำคะแนนให้เต็ม!"
-        )
-
+    # ตรวจข้อ 1
+    if u_ans1 == "apple":
+        st.success("✅ ข้อ 1: ถูกต้อง")
+        score += 1
     else:
+        st.error(f"❌ ข้อ 1: ยังไม่ถูกต้อง (คุณตอบ '{u_ans1}')")
 
-        st.error(
-            "💀 You Lose! ลองใหม่อีกครั้งนะ"
-        )
+    # ตรวจข้อ 2
+    if u_ans2 == "fish":
+        st.success("✅ ข้อ 2: ถูกต้อง")
+        score += 1
+    else:
+        st.error(f"❌ ข้อ 2: ยังไม่ถูกต้อง (คุณตอบ '{u_ans2}')")
+
+    # ตรวจข้อ 3
+    if u_ans3 == "book":
+        st.success("✅ ข้อ 3: ถูกต้อง")
+        score += 1
+    else:
+        st.error(f"❌ ข้อ 3: ยังไม่ถูกต้อง (คุณตอบ '{u_ans3}')")
+
+    # ตรวจข้อ 4
+    if u_ans4 == "school":
+        st.success("✅ ข้อ 4: ถูกต้อง")
+        score += 1
+    else:
+        st.error(f"❌ ข้อ 4: ยังไม่ถูกต้อง (คุณตอบ '{u_ans4}')")
+
+    # แสดงคะแนน
+    st.info(f"🏆 ได้คะแนนรวม: {score} / 4 คะแนน")
+
+    # ตรวจว่าตอบถูกทั้งหมดหรือไม่
+    if score == 4:
+        st.success("🎉 You win!")
+    else:
+        st.error("💀 You lose!")
 
 
-# =========================================================
-# 🎮 ปุ่มเริ่มเกม
-# =========================================================
+# ----------------------------------------------------
+# 1. ปุ่มเริ่มเล่นเกม
+# ----------------------------------------------------
+st.button("🎮 เริ่มเล่นเกม", on_click=reset_game)
 
-if not st.session_state.game_started:
 
-    st.info(
-        "กดปุ่มด้านล่างเพื่อเริ่มเกม "
-        "ระบบจะสุ่มคำศัพท์ให้ 4 ข้อ"
-    )
+# ----------------------------------------------------
+# 2. แถบแสดงเวลานับถอยหลัง
+# ----------------------------------------------------
+if "start" in st.session_state and not st.session_state.get("is_ended", False):
 
-    if st.button(
-        "🎮 เริ่มเล่นเกม",
-        use_container_width=True
-    ):
+    time_left = int(30 - (time.time() - st.session_state.start))
 
-        start_game()
-
+    if time_left > 0:
+        st.error(f"⏳ เหลือเวลา: {time_left} วินาที")
+    else:
+        st.session_state.is_ended = True
         st.rerun()
 
-
-# =========================================================
-# ⏱️ ระบบจับเวลา
-# =========================================================
-
-if (
-    st.session_state.game_started
-    and not st.session_state.game_ended
-):
-
-    elapsed_time = (
-        time.time()
-        - st.session_state.start_time
-    )
-
-    time_left = max(
-        0,
-        30 - int(elapsed_time)
-    )
-
-    # แสดงเวลาที่เหลือ
-    st.error(
-        f"⏳ เหลือเวลา: {time_left} วินาที"
-    )
-
-    # Progress Bar
-    progress = max(
-        0,
-        min(
-            1,
-            time_left / 30
-        )
-    )
-
-    st.progress(progress)
-
-    # หมดเวลา
-    if time_left <= 0:
-
-        st.session_state.game_ended = True
-
-        st.rerun()
-
-
-# =========================================================
-# 📝 แสดงโจทย์
-# =========================================================
-
-if (
-    st.session_state.game_started
-    and not st.session_state.game_ended
-):
-
-    st.divider()
-
-    st.subheader("📝 เติมคำศัพท์ให้ถูกต้อง")
-
-    for index, question in enumerate(
-        st.session_state.questions
-    ):
-
-        st.markdown(
-            f"### ข้อ {index + 1}"
-        )
-
-        # Emoji
-        st.markdown(
-            f"<div style='font-size:55px; text-align:center;'>"
-            f"{question['emoji']}"
-            f"</div>",
-            unsafe_allow_html=True
-        )
-
-        # ประเภทคำศัพท์
-        st.caption(
-            f"หมวด: {question['category']}"
-        )
-
-        # คำที่มีช่องว่าง
-        st.markdown(
-            f"### `{st.session_state.masked_questions[index]}`"
-        )
-
-        # ช่องตอบ
-        answer = st.text_input(
-            f"✏️ คำตอบข้อ {index + 1}",
-            key=f"answer_{index}"
-        )
-
-        # บันทึกคำตอบ
-        st.session_state.answers[index] = answer
-
-        st.divider()
-
-
-# =========================================================
-# 📥 ปุ่มส่งคำตอบ
-# =========================================================
-
-if (
-    st.session_state.game_started
-    and not st.session_state.game_ended
-):
-
-    if st.button(
-        "📥 ส่งคำตอบ",
-        use_container_width=True
-    ):
-
-        st.session_state.game_ended = True
-
-        st.rerun()
-
-
-# =========================================================
-# 🔄 ปุ่มเล่นใหม่
-# =========================================================
-
-if st.session_state.game_ended:
-
-    if st.button(
-        "🔄 เล่นเกมใหม่",
-        use_container_width=True
-    ):
-
-        reset_game()
-
-        st.rerun()
-
-    # แสดงผล
-    show_result_dialog()
-
-
-# =========================================================
-# ⏱️ ทำให้ Timer ทำงานต่อเนื่อง
-# =========================================================
-
-if (
-    st.session_state.game_started
-    and not st.session_state.game_ended
-):
-
-    time.sleep(1)
-
-    st.rerun()
 
 st.divider()
-st.write("นางสาว ทับทิม คำป้อ เลขที่ 43 ม.4/7")
+
+
+# ----------------------------------------------------
+# 3. ช่องรับคำตอบ
+# ----------------------------------------------------
+
+ans1 = st.text_input(
+    "ข้อ 1: An `a _ _ l e` a day keeps the doctor away. 🍎",
+    value=st.session_state.ans1_val,
+)
+
+ans2 = st.text_input(
+    "ข้อ 2: Cats love to eat `f _ s h`. 🐟",
+    value=st.session_state.ans2_val,
+)
+
+# เพิ่มข้อ 3
+ans3 = st.text_input(
+    "ข้อ 3: I read a `b _ _ k` every day. 📖",
+    value=st.session_state.ans3_val,
+)
+
+# เพิ่มข้อ 4
+ans4 = st.text_input(
+    "ข้อ 4: Students go to `s _ h _ _ l` every day. 🏫",
+    value=st.session_state.ans4_val,
+)
+
+
+# ----------------------------------------------------
+# อัปเดตค่าล่าสุดเข้าตัวแปร
+# ----------------------------------------------------
+
+st.session_state.ans1_val = ans1
+st.session_state.ans2_val = ans2
+st.session_state.ans3_val = ans3
+st.session_state.ans4_val = ans4
+
+
+# ----------------------------------------------------
+# 4. ปุ่มส่งคำตอบ
+# ----------------------------------------------------
+
+if "start" in st.session_state and not st.session_state.get("is_ended", False):
+
+    if st.button("📥 ส่งคำตอบ"):
+
+        st.session_state.is_ended = True
+        st.rerun()
+
+    # อัปเดตเวลา
+    time.sleep(1)
+    st.rerun()
+
+
+# ----------------------------------------------------
+# 5. แสดง Dialog ผลลัพธ์
+# ----------------------------------------------------
+
+if st.session_state.get("is_ended", False):
+
+    show_result_dialog(
+        ans1,
+        ans2,
+        ans3,
+        ans4
+    )
+
+
+st.divider()
+
+st.write("นางสาว  ทับทิม คำป้อ เลขที่ 43 ม.4/7")
